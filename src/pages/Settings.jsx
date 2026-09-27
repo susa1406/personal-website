@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
 import { supabase } from '../lib/supabase'
 import { User, Lock, LogOut, Download, Shield, Palette } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function Settings() {
   const { user, profile, signOut, updateProfile } = useAuth()
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
   const [name, setName] = useState(profile?.name || '')
   const [savingProfile, setSavingProfile] = useState(false)
-  const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [savingPwd, setSavingPwd] = useState(false)
+
 
   async function handleSaveProfile(e) {
     e.preventDefault()
@@ -149,17 +152,32 @@ export default function Settings() {
         <div className="settings-section-title">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Palette size={14} /> Appearance</div>
         </div>
-        <div className="settings-row">
+        <div className="theme-toggle-row">
           <div>
             <div className="settings-row-label">Theme</div>
-            <div className="settings-row-sub">JARVIS Dark Theme is always active</div>
+            <div className="settings-row-sub">
+              {isDark ? '🌙 Dark mode — JARVIS classic' : '☀️ Light mode — clean & bright'}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'var(--accent-red)' }} />
-            <span style={{ fontSize: 13, color: 'var(--accent-red)', fontWeight: 600 }}>JARVIS</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="theme-mode-labels">
+              <span className="theme-icon">☀️</span>
+              <span style={{ fontSize: 11, color: !isDark ? 'var(--accent-red)' : 'var(--text-muted)', fontWeight: !isDark ? 700 : 400 }}>Light</span>
+            </div>
+            <label className="toggle-switch">
+              <input type="checkbox" checked={isDark} onChange={toggleTheme} />
+              <div className="toggle-track">
+                <div className="toggle-thumb" />
+              </div>
+            </label>
+            <div className="theme-mode-labels">
+              <span style={{ fontSize: 11, color: isDark ? 'var(--accent-red)' : 'var(--text-muted)', fontWeight: isDark ? 700 : 400 }}>Dark</span>
+              <span className="theme-icon">🌙</span>
+            </div>
           </div>
         </div>
       </div>
+
 
       {/* Data */}
       <div className="settings-section">
