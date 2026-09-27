@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Wallet, Receipt, BookOpen,
   Target, StickyNote, Settings, Menu, X, Zap
 } from 'lucide-react'
+import QuickAdd from './QuickAdd'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -93,6 +94,9 @@ export default function Layout() {
       <main className="main-content" style={{ marginTop: 0 }}>
         <Outlet />
       </main>
+
+      {/* Floating Quick Add button — visible on all pages */}
+      <QuickAdd />
     </div>
   )
 }

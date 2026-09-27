@@ -1351,8 +1351,126 @@ img { max-width: 100%; }
 }
 
 /* ========================
+   QUICK ADD FAB
+   ======================== */
+
+/* Main floating button */
+.qa-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(220, 20, 20, 0.5), 0 0 0 0 rgba(220, 20, 20, 0.3);
+  z-index: 200;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  animation: qa-pulse 3s infinite;
+}
+
+.qa-fab:hover {
+  background: #b80000;
+  box-shadow: 0 6px 28px rgba(220, 20, 20, 0.6);
+  transform: scale(1.08);
+}
+
+.qa-fab.qa-fab-open {
+  background: #555;
+  animation: none;
+  transform: rotate(45deg) scale(1.05);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+@keyframes qa-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(220,20,20,0.5), 0 0 0 0 rgba(220,20,20,0.3); }
+  60%       { box-shadow: 0 4px 20px rgba(220,20,20,0.5), 0 0 0 10px rgba(220,20,20,0); }
+}
+
+/* Fan-out container */
+.qa-actions {
+  position: fixed;
+  bottom: 96px;
+  right: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 199;
+  pointer-events: none;
+  align-items: flex-end;
+}
+
+.qa-actions.qa-actions-open {
+  pointer-events: all;
+}
+
+/* Individual action buttons */
+.qa-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--bg-card);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(12px) scale(0.9);
+  transition: opacity 0.2s ease var(--qa-delay, 0ms),
+              transform 0.2s ease var(--qa-delay, 0ms),
+              background 0.15s ease;
+  white-space: nowrap;
+}
+
+.qa-action-btn svg {
+  color: var(--qa-color);
+  flex-shrink: 0;
+}
+
+.qa-action-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--qa-color);
+  transform: translateY(0) scale(1.04) !important;
+}
+
+.qa-actions-open .qa-action-btn {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.qa-action-label {
+  font-size: 13px;
+}
+
+/* Tap backdrop to close */
+.qa-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 198;
+  background: rgba(0,0,0,0.25);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .qa-fab { bottom: 20px; right: 16px; width: 52px; height: 52px; }
+  .qa-actions { bottom: 84px; right: 18px; }
+  .qa-action-btn { padding: 8px 12px 8px 10px; font-size: 12px; }
+}
+
+/* ========================
    RESPONSIVE
    ======================== */
+
 
 /* Tablet — 1024px */
 @media (max-width: 1024px) {
