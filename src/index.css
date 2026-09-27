@@ -81,7 +81,7 @@ img { max-width: 100%; }
   left: 0;
   height: 100vh;
   z-index: 100;
-  transition: transform var(--transition);
+  transition: transform 0.25s ease;
   overflow-y: auto;
 }
 
@@ -216,9 +216,11 @@ img { max-width: 100%; }
   height: var(--topbar-height);
   align-items: center;
   justify-content: space-between;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 90;
+  left: 0;
+  right: 0;
+  z-index: 110;
 }
 
 .topbar-logo {
@@ -1361,10 +1363,16 @@ img { max-width: 100%; }
 
 /* Mobile — 768px and below */
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
+  /* Sidebar hidden by default, slides in BELOW the topbar */
+  .sidebar {
+    transform: translateX(-100%);
+    top: var(--topbar-height) !important;
+    height: calc(100vh - var(--topbar-height)) !important;
+    z-index: 100;
+  }
   .sidebar.open { transform: translateX(0); }
 
-  /* Full width, below topbar */
+  /* Full width, offset below fixed topbar */
   .main-content {
     margin-left: 0 !important;
     width: 100% !important;
@@ -1372,6 +1380,12 @@ img { max-width: 100%; }
     padding: 12px !important;
     padding-top: calc(var(--topbar-height) + 12px) !important;
     overflow-x: hidden;
+  }
+
+  /* Overlay also starts below topbar */
+  .sidebar-overlay {
+    top: var(--topbar-height) !important;
+    z-index: 99 !important;
   }
 
   .topbar { display: flex; }
