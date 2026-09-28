@@ -9,6 +9,7 @@ import Experiences from './pages/Experiences'
 import Goals from './pages/Goals'
 import Notes from './pages/Notes'
 import Settings from './pages/Settings'
+import Reports from './pages/Reports'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="experiences" element={<Experiences />} />
         <Route path="goals" element={<Goals />} />
         <Route path="notes" element={<Notes />} />
+        <Route path="reports" element={<Reports />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -3,18 +3,19 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import {
   LayoutDashboard, Wallet, Receipt, BookOpen,
-  Target, StickyNote, Settings, Menu, X, Zap
+  Target, StickyNote, Settings, Menu, X, Zap, BarChart2
 } from 'lucide-react'
 import QuickAdd from './QuickAdd'
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/money', label: 'Money', icon: Wallet },
-  { path: '/expenses', label: 'Expenses', icon: Receipt },
-  { path: '/experiences', label: 'Experiences', icon: BookOpen },
-  { path: '/goals', label: 'Goals', icon: Target },
-  { path: '/notes', label: 'Notes', icon: StickyNote },
-  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/',           label: 'Dashboard',   icon: LayoutDashboard },
+  { path: '/money',      label: 'Money',        icon: Wallet },
+  { path: '/expenses',   label: 'Expenses',     icon: Receipt },
+  { path: '/experiences',label: 'Experiences',  icon: BookOpen },
+  { path: '/goals',      label: 'Goals',        icon: Target },
+  { path: '/notes',      label: 'Notes',        icon: StickyNote },
+  { path: '/reports',    label: 'Reports',      icon: BarChart2 },
+  { path: '/settings',   label: 'Settings',     icon: Settings },
 ]
 
 export default function Layout() {
