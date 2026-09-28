@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Plus, X, Wallet, Receipt, BookOpen, StickyNote } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { moneyService } from '../services/moneyService'
@@ -232,30 +232,131 @@ const MODAL_TITLES = {
   note: '📝 Quick Add — Note',
 }
 
+/* ── Constants ── */
+const FAB_SIZE = 52
+const MARGIN = 12
+const DRAG_THRESHOLD = 6 // px moved before it counts as drag
+
+function getDefaultPos() {
+  return {
+    x: window.innerWidth - FAB_SIZE - 16,
+    y: window.innerHeight - FAB_SIZE - 28,
+  }
+}
+
+function clampPos(x, y) {
+  return {
+    x: Math.max(MARGIN, Math.min(window.innerWidth  - FAB_SIZE - MARGIN, x)),
+    y: Math.max(MARGIN, Math.min(window.innerHeight - FAB_SIZE - MARGIN, y)),
+  }
+}
+
+function loadPos() {
+  try {
+    const s = localStorage.getItem('qa-fab-pos')
+    if (s) {
+      const p = JSON.parse(s)
+      // re-clamp in case window resized since last visit
+      return clampPos(p.x, p.y)
+    }
+  } catch {}
+  return getDefaultPos()
+}
+
 /* ── Main QuickAdd component ── */
 export default function QuickAdd() {
   const { user } = useAuth()
-  const [open, setOpen] = useState(false)
-  const [active, setActive] = useState(null) // which modal is open
+  const [open, setOpen]   = useState(false)
+  const [active, setActive] = useState(null)
+  const [pos, setPos]     = useState(loadPos)
+  const [dragging, setDragging] = useState(false)
+
+  // Refs for drag tracking (avoid stale closures)
+  const isDragging   = useRef(false)
+  const hasMoved     = useRef(false)
+  const startPtr     = useRef({ x: 0, y: 0 })
+  const startPos     = useRef({ x: 0, y: 0 })
+  const posRef       = useRef(pos)
+  posRef.current = pos
+
+  /* ── Pointer down — start drag ── */
+  function onPointerDown(e) {
+    if (e.button && e.button !== 0) return   // ignore right-click
+    e.currentTarget.setPointerCapture(e.pointerId)
+    isDragging.current = true
+    hasMoved.current   = false
+    startPtr.current   = { x: e.clientX, y: e.clientY }
+    startPos.current   = { ...posRef.current }
+    setDragging(false)
+  }
+
+  /* ── Pointer move — drag ── */
+  function onPointerMove(e) {
+    if (!isDragging.current) return
+    const dx = e.clientX - startPtr.current.x
+    const dy = e.clientY - startPtr.current.y
+
+    if (!hasMoved.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+      hasMoved.current = true
+      setOpen(false)      // close fan if open while dragging
+      setDragging(true)
+    }
+
+    if (hasMoved.current) {
+      const newPos = clampPos(startPos.current.x + dx, startPos.current.y + dy)
+      setPos(newPos)
+    }
+  }
+
+  /* ── Pointer up — end drag or fire click ── */
+  function onPointerUp() {
+    isDragging.current = false
+    setDragging(false)
+
+    if (!hasMoved.current) {
+      // Tap — toggle fan-out menu
+      setOpen(o => !o)
+    } else {
+      // Drag ended — save position
+      localStorage.setItem('qa-fab-pos', JSON.stringify(posRef.current))
+    }
+  }
 
   function handleAction(key) {
     setOpen(false)
     setActive(key)
   }
 
-  function handleDone() {
-    setActive(null)
-  }
+  function handleDone() { setActive(null) }
+
+  /* ── Dynamic menu position ── */
+  // Decide: fan UP or DOWN based on button position
+  const spaceAbove = pos.y
+  const spaceBelow = window.innerHeight - pos.y - FAB_SIZE
+  const fanUp = spaceAbove >= spaceBelow
+
+  // Menu width ≈ 180px; align right edge with button right edge
+  const menuLeft = Math.max(MARGIN, Math.min(
+    window.innerWidth - 188 - MARGIN,
+    pos.x + FAB_SIZE - 188
+  ))
+
+  const menuStyle = fanUp
+    ? { left: menuLeft, bottom: window.innerHeight - pos.y + 8, flexDirection: 'column' }
+    : { left: menuLeft, top: pos.y + FAB_SIZE + 8,              flexDirection: 'column-reverse' }
 
   return (
     <>
-      {/* Fan-out backdrop */}
+      {/* Backdrop */}
       {open && (
         <div className="qa-backdrop" onClick={() => setOpen(false)} />
       )}
 
-      {/* Fan-out action buttons */}
-      <div className={`qa-actions ${open ? 'qa-actions-open' : ''}`}>
+      {/* Fan-out menu — dynamically positioned */}
+      <div
+        className={`qa-actions ${open ? 'qa-actions-open' : ''}`}
+        style={{ ...menuStyle, right: 'unset', bottom: menuStyle.bottom }}
+      >
         {ACTIONS.map(({ key, label, icon: Icon, color }, i) => (
           <button
             key={key}
@@ -270,11 +371,15 @@ export default function QuickAdd() {
         ))}
       </div>
 
-      {/* Main FAB */}
+      {/* Draggable FAB */}
       <button
-        className={`qa-fab ${open ? 'qa-fab-open' : ''}`}
-        onClick={() => setOpen(o => !o)}
-        aria-label="Quick Add"
+        className={`qa-fab ${open ? 'qa-fab-open' : ''} ${dragging ? 'qa-fab-dragging' : ''}`}
+        style={{ left: pos.x, top: pos.y, right: 'unset', bottom: 'unset' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        aria-label="Quick Add — drag to move"
+        title="Tap to add • Hold & drag to move"
       >
         {open ? <X size={22} /> : <Plus size={22} />}
       </button>

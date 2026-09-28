@@ -1760,6 +1760,7 @@ img { max-width: 100%; }
   background: #b80000;
   box-shadow: 0 6px 28px rgba(220, 20, 20, 0.6);
   transform: scale(1.08);
+  cursor: grab;
 }
 
 .qa-fab.qa-fab-open {
@@ -1767,6 +1768,15 @@ img { max-width: 100%; }
   animation: none;
   transform: rotate(45deg) scale(1.05);
   box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.qa-fab.qa-fab-dragging {
+  cursor: grabbing !important;
+  animation: none;
+  transform: scale(1.12);
+  box-shadow: 0 8px 32px rgba(220, 20, 20, 0.6);
+  opacity: 0.9;
+  transition: none;
 }
 
 @keyframes qa-pulse {
