@@ -30,7 +30,7 @@
   --radius-lg: 16px;
   --shadow-card: 0 2px 20px rgba(0, 0, 0, 0.4);
   --shadow-red: 0 0 20px rgba(220, 20, 20, 0.15);
-  --transition: 0.2s ease;
+  --transition: 0.15s ease;
 }
 
 /* ========================
@@ -2062,3 +2062,83 @@ img { max-width: 100%; }
 .text-xs { font-size: 11px; }
 .w-full { width: 100%; }
 .hidden { display: none; }
+
+/* ========================
+   PERFORMANCE OPTIMIZATIONS
+   ======================== */
+
+/* GPU compositing for animated/frequently changing elements */
+.qa-fab,
+.qa-actions,
+.sidebar,
+.modal,
+.modal-overlay {
+  will-change: transform;
+}
+
+/* Contain layout recalculations to individual cards */
+.stat-card,
+.card,
+.goal-card,
+.note-card,
+.settings-section {
+  contain: layout style;
+}
+
+/* Faster sidebar open/close */
+.sidebar { transition: transform 0.18s ease; }
+
+/* Reduce skeleton shimmer duration for faster feel */
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  animation: skeleton-shimmer 1.2s ease infinite;
+}
+
+/* Reduce FAB pulse — less battery drain on mobile */
+@keyframes qa-pulse-lite {
+  0%, 100% { box-shadow: 0 4px 20px rgba(220,20,20,0.5); }
+  60%       { box-shadow: 0 4px 20px rgba(220,20,20,0.5), 0 0 0 6px rgba(220,20,20,0); }
+}
+.qa-fab { animation: qa-pulse-lite 4s infinite; }
+
+/* ========================
+   REDUCED MOTION
+   (Respects OS accessibility setting)
+   ======================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .qa-fab { animation: none; }
+  .skeleton { animation: none; background: var(--bg-card-hover); }
+  .spinner { animation: spin 1s linear infinite; }
+  .sidebar-nav-item::after { transition: none; }
+}
+
+/* Mobile performance — reduce expensive effects on small screens */
+@media (max-width: 768px) {
+  /* Remove glow shadows on mobile for GPU savings */
+  .stat-card:hover,
+  .card:hover,
+  .goal-card:hover,
+  .note-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: none;
+  }
+
+  /* Simpler button hovers on mobile (touch doesn't have hover anyway) */
+  .btn:hover { transform: none; }
+
+  /* Faster transitions on mobile */
+  :root { --transition: 0.12s ease; }
+}
+
