@@ -233,11 +233,12 @@ const MODAL_TITLES = {
 }
 
 /* ── Constants ── */
-const FAB_SIZE = 52
-const MARGIN = 12
-const DRAG_THRESHOLD = 6 // px moved before it counts as drag
+const FAB_SIZE = 54
+const MARGIN = 10
+const DRAG_THRESHOLD = 4 // px moved before it counts as drag
 
 function getDefaultPos() {
+  if (typeof window === 'undefined') return { x: 300, y: 500 }
   return {
     x: window.innerWidth - FAB_SIZE - 16,
     y: window.innerHeight - FAB_SIZE - 28,
@@ -245,6 +246,7 @@ function getDefaultPos() {
 }
 
 function clampPos(x, y) {
+  if (typeof window === 'undefined') return { x, y }
   return {
     x: Math.max(MARGIN, Math.min(window.innerWidth  - FAB_SIZE - MARGIN, x)),
     y: Math.max(MARGIN, Math.min(window.innerHeight - FAB_SIZE - MARGIN, y)),
@@ -256,7 +258,6 @@ function loadPos() {
     const s = localStorage.getItem('qa-fab-pos')
     if (s) {
       const p = JSON.parse(s)
-      // re-clamp in case window resized since last visit
       return clampPos(p.x, p.y)
     }
   } catch {}
@@ -271,26 +272,44 @@ export default function QuickAdd() {
   const [pos, setPos]     = useState(loadPos)
   const [dragging, setDragging] = useState(false)
 
-  // Refs for drag tracking (avoid stale closures)
+  const fabRef = useRef(null)
+
+  // Refs for high-performance direct dragging
   const isDragging   = useRef(false)
   const hasMoved     = useRef(false)
   const startPtr     = useRef({ x: 0, y: 0 })
   const startPos     = useRef({ x: 0, y: 0 })
+  const currentPos   = useRef(pos)
   const posRef       = useRef(pos)
   posRef.current = pos
+
+  // Re-clamp position on window resize or orientation change
+  useEffect(() => {
+    function handleResize() {
+      setPos(p => {
+        const clamped = clampPos(p.x, p.y)
+        localStorage.setItem('qa-fab-pos', JSON.stringify(clamped))
+        return clamped
+      })
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   /* ── Pointer down — start drag ── */
   function onPointerDown(e) {
     if (e.button && e.button !== 0) return   // ignore right-click
-    e.currentTarget.setPointerCapture(e.pointerId)
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {}
     isDragging.current = true
     hasMoved.current   = false
     startPtr.current   = { x: e.clientX, y: e.clientY }
     startPos.current   = { ...posRef.current }
-    setDragging(false)
+    currentPos.current = { ...posRef.current }
   }
 
-  /* ── Pointer move — drag ── */
+  /* ── Pointer move — direct GPU drag ── */
   function onPointerMove(e) {
     if (!isDragging.current) return
     const dx = e.clientX - startPtr.current.x
@@ -304,21 +323,33 @@ export default function QuickAdd() {
 
     if (hasMoved.current) {
       const newPos = clampPos(startPos.current.x + dx, startPos.current.y + dy)
-      setPos(newPos)
+      currentPos.current = newPos
+      if (fabRef.current) {
+        fabRef.current.style.transform = `translate3d(${newPos.x}px, ${newPos.y}px, 0)`
+      }
     }
   }
 
   /* ── Pointer up — end drag or fire click ── */
-  function onPointerUp() {
+  function onPointerUp(e) {
+    if (!isDragging.current) return
+    if (e.currentTarget && e.pointerId) {
+      try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
+    }
+    const moved = hasMoved.current
     isDragging.current = false
+    hasMoved.current   = false
     setDragging(false)
 
-    if (!hasMoved.current) {
+    if (!moved) {
       // Tap — toggle fan-out menu
       setOpen(o => !o)
     } else {
-      // Drag ended — save position
-      localStorage.setItem('qa-fab-pos', JSON.stringify(posRef.current))
+      // Drag ended — sync React state and save position
+      const finalPos = currentPos.current
+      setPos(finalPos)
+      posRef.current = finalPos
+      localStorage.setItem('qa-fab-pos', JSON.stringify(finalPos))
     }
   }
 
@@ -330,12 +361,10 @@ export default function QuickAdd() {
   function handleDone() { setActive(null) }
 
   /* ── Dynamic menu position ── */
-  // Decide: fan UP or DOWN based on button position
   const spaceAbove = pos.y
   const spaceBelow = window.innerHeight - pos.y - FAB_SIZE
   const fanUp = spaceAbove >= spaceBelow
 
-  // Menu width ≈ 180px; align right edge with button right edge
   const menuLeft = Math.max(MARGIN, Math.min(
     window.innerWidth - 188 - MARGIN,
     pos.x + FAB_SIZE - 188
@@ -373,15 +402,21 @@ export default function QuickAdd() {
 
       {/* Draggable FAB */}
       <button
+        ref={fabRef}
         className={`qa-fab ${open ? 'qa-fab-open' : ''} ${dragging ? 'qa-fab-dragging' : ''}`}
-        style={{ left: pos.x, top: pos.y, right: 'unset', bottom: 'unset' }}
+        style={{
+          transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         aria-label="Quick Add — drag to move"
         title="Tap to add • Hold & drag to move"
       >
-        {open ? <X size={22} /> : <Plus size={22} />}
+        <span className="qa-fab-icon">
+          {open ? <X size={22} /> : <Plus size={22} />}
+        </span>
       </button>
 
       {/* Quick-add modals */}
