@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Zap, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Zap, AlertCircle, UserPlus } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
@@ -28,6 +28,8 @@ export default function Login() {
       setLoading(false)
     }
   }
+
+  const mailtoUrl = "mailto:susaprogramer@gmail.com?subject=New%20Account%20Request&body=Hi%20Susa%2C%20I%20would%20like%20to%20create%20a%20new%20account.%20Please%20provide%20me%20with%20the%20registration%20user%20ID%20and%20password%20to%20get%20started."
 
   return (
     <div className="login-page">
@@ -108,6 +110,17 @@ export default function Login() {
             ) : 'LOGIN'}
           </button>
         </form>
+
+        <div className="login-request-box">
+          <span className="login-request-label">New user?</span>
+          <a
+            href={mailtoUrl}
+            className="login-request-link"
+          >
+            <UserPlus size={14} />
+            Request for new account
+          </a>
+        </div>
 
         <div className="login-status">
           <div>🔴 SYSTEM ONLINE</div>

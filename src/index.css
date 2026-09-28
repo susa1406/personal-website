@@ -1213,6 +1213,43 @@ img { max-width: 100%; }
   margin-top: 8px;
 }
 
+.login-request-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.login-request-label {
+  color: var(--text-muted);
+}
+
+.login-request-link {
+  color: var(--accent-red);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(220, 20, 20, 0.08);
+  border: 1px solid rgba(220, 20, 20, 0.25);
+  transition: all var(--transition);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.login-request-link:hover {
+  background: rgba(220, 20, 20, 0.18);
+  border-color: var(--accent-red);
+  color: #ff4d4d;
+  box-shadow: 0 0 12px var(--accent-red-glow);
+  transform: translateY(-1px);
+}
+
 .login-status {
   text-align: center;
   margin-top: 24px;
@@ -1221,6 +1258,7 @@ img { max-width: 100%; }
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+
 
 /* ========================
    SECTION HEADER
